@@ -30,14 +30,8 @@ void RosCommunication::initialize() {
     Serial.begin(115200);
     Serial.println("ROS Communication init");
 
-    // IMPORTANT: correct WiFi transport
-    char ssid[] = "Jhelum.net [Luqman House]";
-    char psk[]  = "7861234786";
-
-    IPAddress agent_ip(192, 168, 100, 21);   // MUST match PC running agent
-    size_t agent_port = 8888;
-
-    set_microros_wifi_transports(ssid, psk, "1.1.1.1", agent_port);
+    // Use USB/UART serial transport
+    set_microros_transports();
 
     delay(2000);
 
@@ -112,7 +106,10 @@ void RosCommunication::publish_odom(
     odom_msg.twist.twist.linear.x = linear_vel;
     odom_msg.twist.twist.angular.z = angular_vel;
 
-    rcl_publish(&odom_publisher, &odom_msg, NULL);
+    rcl_ret_t publish_ret = rcl_publish(&odom_publisher, &odom_msg, NULL);
+    if (publish_ret != RCL_RET_OK) {
+        Serial.println("Failed to publish /odom");
+    }
 }
 
 // ─────────────────────────────────────────────────
